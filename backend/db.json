@@ -1,0 +1,75 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "name": "Admin Teacher",
+      "email": "admin@school.edu",
+      "password": "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi",
+      "role": "teacher",
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "xvOLDMFf4Uo",
+      "name": "Jefina Garay",
+      "email": "garayjefina26@gmail.com",
+      "password": "$2b$10$0hscmZ/R4pFHs0fUny4dg./aZ4D664ypj7AldTsmFmVQpK6qPq5T2",
+      "role": "teacher",
+      "createdAt": "2026-05-05T00:45:41.441Z"
+    }
+  ],
+  "students": [
+    {
+      "studentId": "STU-001",
+      "firstName": "Jefina",
+      "lastName": "Garay",
+      "email": "garayjefina26@gmail.com",
+      "course": "Information Technology",
+      "year": 3,
+      "section": "B",
+      "gender": "Female",
+      "contactNumber": "09171234567",
+      "address": "Dahican, City of Mati Davao Oriental",
+      "enrollmentDate": "2026-05-07",
+      "status": "Active",
+      "grades": {
+        "midterm": 0,
+        "finals": 0,
+        "average": 0
+      },
+      "createdAt": "2026-05-07T03:50:53.798Z",
+      "id": "r_WFROVwpiI"
+    }
+  ],
+  "attendance": [
+    {
+      "id": "1",
+      "studentId": null,
+      "date": "2024-11-01",
+      "status": "Present",
+      "remarks": ""
+    },
+    {
+      "id": "2",
+      "studentId": null,
+      "date": "2024-11-01",
+      "status": "Absent",
+      "remarks": "No reason given"
+    },
+    {
+      "id": "3",
+      "studentId": null,
+      "date": "2024-11-01",
+      "status": "Present",
+      "remarks": ""
+    },
+    {
+      "studentId": 4,
+      "date": "2026-05-07",
+      "status": "Absent",
+      "remarks": "",
+      "createdAt": "2026-05-07T03:08:26.685Z",
+      "id": "kaMP7jBdozQ"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}

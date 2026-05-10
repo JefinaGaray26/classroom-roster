@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grades – Classroom Roster</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<div class="app-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">🏫</div>
+        <div class="sidebar-logo-text">
+          <h3>Classroom Roster</h3>
+          <span>Premium Edition</span>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main Menu</div>
+      <a class="nav-link" href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a class="nav-link" href="students.html"><span class="nav-icon">👨‍🎓</span> Students</a>
+      <a class="nav-link" href="attendance.html"><span class="nav-icon">📋</span> Attendance</a>
+      <a class="nav-link active" href="grades.html"><span class="nav-icon">📝</span> Grades</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar">T</div>
+        <div>
+          <div class="user-name" id="user-name">Teacher</div>
+          <div class="user-role" id="user-role">Teacher</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="Auth.logout()">🚪 Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+    <div class="topbar">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <div class="topbar-title">
+        <h1>Grades</h1>
+        <p>View and update student academic performance</p>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- Summary Cards -->
+      <div class="stats-grid" style="margin-bottom:24px">
+        <div class="stat-card">
+          <div class="stat-icon">🏆</div>
+          <div>
+            <div class="stat-label">Highest Grade</div>
+            <div class="stat-value" id="stat-highest">—</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📊</div>
+          <div>
+            <div class="stat-label">Class Average</div>
+            <div class="stat-value" id="stat-average">—</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div>
+            <div class="stat-label">Passing</div>
+            <div class="stat-value" id="stat-passing">—</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⚠️</div>
+          <div>
+            <div class="stat-label">Failing</div>
+            <div class="stat-value" id="stat-failing">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grade Book Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Grade Book</div>
+            <div class="panel-subtitle" id="grade-count">Loading...</div>
+          </div>
+          <div class="panel-actions">
+            <select class="filter-select" id="filter-course" onchange="applyFilter()">
+              <option value="">All Courses</option>
+            </select>
+            <select class="filter-select" id="filter-section" onchange="applyFilter()">
+              <option value="">All Sections</option>
+              <option>A</option>
+              <option>B</option>
+              <option>C</option>
+              <option>D</option>
+            </select>
+            <select class="filter-select" id="filter-remarks" onchange="applyFilter()">
+              <option value="">All Remarks</option>
+              <option value="Excellent">Excellent</option>
+              <option value="Good">Good</option>
+              <option value="Average">Average</option>
+              <option value="Needs Improvement">Needs Improvement</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrapper" id="grades-table">
+          <div class="loading"><span class="spinner"></span> Loading grades...</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Edit Grade Modal -->
+<div class="modal-overlay" id="grade-modal">
+  <div class="modal" style="max-width:420px; width:90%;">
+    <div class="modal-header">
+      <h3 class="modal-title" id="grade-modal-title">Edit Grade</h3>
+      <button class="modal-close" onclick="closeGradeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="grade-alert" class="alert"></div>
+      <div id="grade-student-info" style="
+        padding:14px;
+        background:var(--bg3);
+        border-radius:var(--radius-sm);
+        border:1px solid var(--border-dim);
+        margin-bottom:18px;
+        display:flex;
+        align-items:center;
+        gap:12px">
+      </div>
+      <div class="form-group">
+        <label>Midterm Grade (0–100)</label>
+        <input type="number" id="g-midterm" min="0" max="100"
+          placeholder="Enter midterm grade" />
+      </div>
+      <div class="form-group">
+        <label>Finals Grade (0–100)</label>
+        <input type="number" id="g-finals" min="0" max="100"
+          placeholder="Enter finals grade" />
+      </div>
+      <div class="form-group">
+        <label>Average (Auto-calculated)</label>
+        <input type="number" id="g-average" readonly
+          style="background:var(--bg3);color:var(--gold);
+          border-color:var(--border);cursor:not-allowed" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeGradeModal()">Cancel</button>
+      <button class="btn btn-primary" id="grade-save-btn" onclick="saveGrade()">
+        ✦ Update Grade
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/utils.js"></script>
+<script>
+  requireAuth();
+  loadUserInfo();
+
+  let allStudents = [];
+  let editingStudentId = null;
+
+  ['g-midterm', 'g-finals'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+      const m = parseFloat(document.getElementById('g-midterm').value) || 0;
+      const f = parseFloat(document.getElementById('g-finals').value) || 0;
+      document.getElementById('g-average').value =
+        m > 0 || f > 0 ? ((m + f) / 2).toFixed(2) : '';
+    });
+  });
+
+  async function loadGrades() {
+    const res = await Students.getAll();
+    if (res && res.ok) {
+      allStudents = res.data.data;
+      populateCourseFilter();
+      renderGrades(allStudents);
+      updateSummaryCards(allStudents);
+    }
+  }
+
+  function updateSummaryCards(students) {
+    const grades = students.map(s => s.grades?.average || 0).filter(g => g > 0);
+    const highest = grades.length > 0 ? Math.max(...grades) : '—';
+    const average = grades.length > 0
+      ? (grades.reduce((a, b) => a + b, 0) / grades.length).toFixed(1) : '—';
+    const passing = students.filter(s => (s.grades?.average || 0) >= 75).length;
+    const failing = students.filter(s =>
+      s.grades?.average > 0 && s.grades?.average < 75).length;
+
+    document.getElementById('stat-highest').textContent = highest;
+    document.getElementById('stat-average').textContent = average;
+    document.getElementById('stat-passing').textContent = passing;
+    document.getElementById('stat-failing').textContent = failing;
+  }
+
+  function populateCourseFilter() {
+    const courses = [...new Set(allStudents.map(s => s.course))];
+    const sel = document.getElementById('filter-course');
+    sel.innerHTML = '<option value="">All Courses</option>' +
+      courses.map(c => `<option>${c}</option>`).join('');
+  }
+
+  function applyFilter() {
+    const course = document.getElementById('filter-course').value;
+    const section = document.getElementById('filter-section').value;
+    const remarks = document.getElementById('filter-remarks').value;
+    let f = [...allStudents];
+    if (course) f = f.filter(s => s.course === course);
+    if (section) f = f.filter(s => s.section === section);
+    if (remarks) f = f.filter(s => gradeLabel(s.grades?.average) === remarks);
+    renderGrades(f);
+    updateSummaryCards(f);
+  }
+
+  function renderGrades(students) {
+    document.getElementById('grade-count').textContent =
+      `${students.length} student(s) — sorted by average grade`;
+    const container = document.getElementById('grades-table');
+
+    if (!students.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <h3>No students found</h3>
+          <p>Try adjusting your filters.</p>
+        </div>`;
+      return;
+    }
+
+    const sorted = [...students].sort((a, b) =>
+      (b.grades?.average || 0) - (a.grades?.average || 0)
+    );
+
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Student</th>
+            <th class="hide-mobile">Course</th>
+            <th class="hide-mobile">Section</th>
+            <th class="hide-mobile">Midterm</th>
+            <th class="hide-mobile">Finals</th>
+            <th>Average</th>
+            <th class="hide-mobile">Remarks</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sorted.map((s, i) => `
+            <tr>
+              <td>
+                <div style="
+                  width:28px;height:28px;border-radius:50%;
+                  background:${i === 0
+                    ? 'linear-gradient(135deg,var(--gold),var(--gold-light))'
+                    : i === 1 ? 'linear-gradient(135deg,#C0C0C0,#E8E8E8)'
+                    : i === 2 ? 'linear-gradient(135deg,#CD7F32,#E8A87C)'
+                    : 'var(--surface3)'};
+                  color:${i < 3 ? 'var(--bg)' : 'var(--text-secondary)'};
+                  display:flex;align-items:center;justify-content:center;
+                  font-size:0.75rem;font-weight:700;
+                  border:1px solid ${i < 3 ? 'transparent' : 'var(--border-dim)'}">
+                  ${i + 1}
+                </div>
+              </td>
+              <td>
+                <div class="student-name-cell">
+                  <div class="student-avatar">
+                    ${getInitials(s.firstName, s.lastName)}
+                  </div>
+                  <div>
+                    <strong style="color:var(--text)">${s.firstName} ${s.lastName}</strong>
+                    <br>
+                    <small style="color:var(--text-secondary)">${s.studentId}</small>
+                  </div>
+                </div>
+              </td>
+              <td class="hide-mobile" style="color:var(--text-secondary);font-size:0.82rem">${s.course}</td>
+              <td class="hide-mobile" style="color:var(--text-secondary)">${s.section}</td>
+              <td class="hide-mobile" style="color:var(--text)">${s.grades?.midterm || '—'}</td>
+              <td class="hide-mobile" style="color:var(--text)">${s.grades?.finals || '—'}</td>
+              <td>
+                <span class="grade ${gradeClass(s.grades?.average)}"
+                  style="font-size:1.1rem">
+                  ${s.grades?.average || '—'}
+                </span>
+              </td>
+              <td class="hide-mobile">
+                <span class="badge ${s.grades?.average >= 75
+                  ? 'badge-success' : s.grades?.average > 0
+                  ? 'badge-danger' : 'badge-gray'}">
+                  ${gradeLabel(s.grades?.average)}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-primary btn-sm"
+                  onclick="openGradeModal('${s.id}')">✏️ Edit</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function openGradeModal(id) {
+    const s = allStudents.find(s => s.id == id);
+    if (!s) return;
+    editingStudentId = id;
+    document.getElementById('grade-modal-title').textContent = 'Edit Grade';
+    document.getElementById('grade-student-info').innerHTML = `
+      <div class="student-avatar">
+        ${getInitials(s.firstName, s.lastName)}
+      </div>
+      <div>
+        <strong style="color:var(--text)">${s.firstName} ${s.lastName}</strong>
+        <br>
+        <small style="color:var(--gold)">${s.studentId} — ${s.course}</small>
+      </div>
+    `;
+    document.getElementById('g-midterm').value = s.grades?.midterm || '';
+    document.getElementById('g-finals').value = s.grades?.finals || '';
+    document.getElementById('g-average').value = s.grades?.average || '';
+    document.getElementById('grade-modal').classList.add('open');
+  }
+
+  async function saveGrade() {
+    const midterm = parseFloat(document.getElementById('g-midterm').value) || 0;
+    const finals = parseFloat(document.getElementById('g-finals').value) || 0;
+    const average = parseFloat(((midterm + finals) / 2).toFixed(2));
+
+    const btn = document.getElementById('grade-save-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Saving...';
+
+    const res = await Students.update(editingStudentId, {
+      grades: { midterm, finals, average }
+    });
+
+    btn.disabled = false;
+    btn.innerHTML = '✦ Update Grade';
+
+    if (res && res.ok) {
+      showToast('Grade updated successfully!', 'success');
+      closeGradeModal();
+      loadGrades();
+    } else {
+      showAlert('grade-alert', 'Failed to update grade.');
+    }
+  }
+
+  function closeGradeModal() {
+    document.getElementById('grade-modal').classList.remove('open');
+  }
+
+  loadGrades();
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('show');
+  }
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('show');
+  }
+</script>
+</body>
+</html>

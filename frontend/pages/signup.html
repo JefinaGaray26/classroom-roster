@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up – Classroom Roster</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="auth-logo-icon">🏫</div>
+        <div>
+          <h2>Classroom Roster</h2>
+          <span>Premium Edition</span>
+        </div>
+      </div>
+
+      <h2 class="auth-title">Create Account</h2>
+      <p class="auth-subtitle">Register as a teacher to get started</p>
+
+      <div id="alert" class="alert"></div>
+
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" placeholder="Juan dela Cruz" />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="teacher@school.edu" />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="At least 6 characters" />
+      </div>
+
+      <div class="form-group">
+        <label for="confirm">Confirm Password</label>
+        <input type="password" id="confirm" placeholder="Repeat your password" />
+      </div>
+
+      <button class="btn btn-primary btn-full" id="signup-btn" onclick="doSignup()">
+        ✦ Create Account
+      </button>
+
+      <p class="auth-link">Already have an account? <a href="login.html">Sign in</a></p>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/utils.js"></script>
+  <script>
+    redirectIfAuth();
+
+    async function doSignup() {
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const confirm = document.getElementById('confirm').value;
+      const btn = document.getElementById('signup-btn');
+
+      if (!name || !email || !password) {
+        showAlert('alert', 'All fields are required.');
+        return;
+      }
+      if (password.length < 6) {
+        showAlert('alert', 'Password must be at least 6 characters.');
+        return;
+      }
+      if (password !== confirm) {
+        showAlert('alert', 'Passwords do not match.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Creating account...';
+
+      const res = await Auth.signup(name, email, password);
+      btn.disabled = false;
+      btn.innerHTML = '✦ Create Account';
+
+      if (res && res.ok) {
+        setToken(res.data.data.token);
+        setUser(res.data.data.user);
+        showAlert('alert', 'Account created! Redirecting...', 'success');
+        setTimeout(() => window.location.href = 'dashboard.html', 800);
+      } else {
+        showAlert('alert', res?.data?.message || 'Signup failed. Please try again.');
+      }
+    }
+  </script>
+</body>
+</html>

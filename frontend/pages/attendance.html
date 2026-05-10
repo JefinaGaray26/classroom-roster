@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Attendance – Classroom Roster</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<div class="app-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">🏫</div>
+        <div class="sidebar-logo-text">
+          <h3>Classroom Roster</h3>
+          <span>Premium Edition</span>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main Menu</div>
+      <a class="nav-link" href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a class="nav-link" href="students.html"><span class="nav-icon">👨‍🎓</span> Students</a>
+      <a class="nav-link active" href="attendance.html"><span class="nav-icon">📋</span> Attendance</a>
+      <a class="nav-link" href="grades.html"><span class="nav-icon">📝</span> Grades</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar">T</div>
+        <div>
+          <div class="user-name" id="user-name">Teacher</div>
+          <div class="user-role" id="user-role">Teacher</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="Auth.logout()">🚪 Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+    <div class="topbar">
+      <button class="menu-btn" id="menu-btn" onclick="toggleSidebar()">☰</button>
+      <div class="topbar-title">
+        <h1>Attendance</h1>
+        <p>Track daily student attendance</p>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- Record Attendance Panel -->
+      <div class="panel" style="margin-bottom:24px">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Record Attendance</div>
+            <div class="panel-subtitle">Select a date and mark attendance</div>
+          </div>
+          <div class="panel-actions">
+            <input type="date" id="att-date" class="filter-select" />
+            <button class="btn btn-primary" onclick="loadByDate()">✦ Load Students</button>
+          </div>
+        </div>
+        <div id="attendance-form-area">
+          <div class="empty-state">
+            <div class="empty-icon">📅</div>
+            <h3>Select a date</h3>
+            <p>Pick a date above and click "Load Students" to take attendance.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attendance Records Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Attendance Records</div>
+            <div class="panel-subtitle" id="records-count">Filter by date below</div>
+          </div>
+          <div class="panel-actions">
+            <input type="date" id="filter-date" class="filter-select"
+              onchange="filterRecords()" />
+            <button class="btn btn-outline btn-sm" onclick="clearFilter()">
+              Show All
+            </button>
+          </div>
+        </div>
+        <div id="attendance-records">
+          <div class="loading"><span class="spinner"></span> Loading records...</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/utils.js"></script>
+<script>
+  requireAuth();
+  loadUserInfo();
+
+  document.getElementById('att-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('filter-date').value = new Date().toISOString().split('T')[0];
+
+  let allStudents = [];
+  let allRecords = [];
+
+  async function init() {
+    const res = await Students.getAll();
+    if (res && res.ok) allStudents = res.data.data;
+    loadAllRecords();
+  }
+
+  async function loadAllRecords() {
+    const res = await Attendance.getAll();
+    if (res && res.ok) {
+      allRecords = res.data.data;
+      filterRecords();
+    }
+  }
+
+  function clearFilter() {
+    document.getElementById('filter-date').value = '';
+    renderRecords(allRecords);
+  }
+
+  function filterRecords() {
+    const date = document.getElementById('filter-date').value;
+    const filtered = date ? allRecords.filter(r => r.date === date) : allRecords;
+    renderRecords(filtered);
+  }
+
+  function renderRecords(records) {
+    const container = document.getElementById('attendance-records');
+    const countEl = document.getElementById('records-count');
+    countEl.textContent = `${records.length} record(s) found`;
+
+    if (records.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <h3>No records found</h3>
+          <p>No attendance recorded for the selected date.</p>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Remarks</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${records.map(r => {
+            const student = allStudents.find(s => s.id == r.studentId);
+            const name = student
+              ? `${student.firstName} ${student.lastName}`
+              : `Student #${r.studentId}`;
+            return `
+              <tr>
+                <td>
+                  <div class="student-name-cell">
+                    ${student ? `
+                      <div class="student-avatar">
+                        ${getInitials(student.firstName, student.lastName)}
+                      </div>` : ''}
+                    <strong style="color:var(--text)">${name}</strong>
+                  </div>
+                </td>
+                <td style="color:var(--text-secondary)">${formatDate(r.date)}</td>
+                <td>
+                  <span class="badge ${
+                    r.status === 'Present' ? 'badge-success' :
+                    r.status === 'Late' ? 'badge-warning' : 'badge-danger'}">
+                    ${r.status}
+                  </span>
+                </td>
+                <td><small style="color:var(--text-secondary)">${r.remarks || '—'}</small></td>
+                <td>
+                  <div class="table-actions">
+                    <button class="btn btn-danger btn-sm"
+                      onclick="deleteRecord('${r.id}')">🗑 Delete</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  async function loadByDate() {
+    const date = document.getElementById('att-date').value;
+    if (!date) { showToast('Please select a date.', 'error'); return; }
+    if (allStudents.length === 0) { showToast('No students found.', 'error'); return; }
+
+    const existing = allRecords.filter(r => r.date === date);
+    const existingMap = {};
+    existing.forEach(r => existingMap[String(r.studentId)] = r.status);
+
+    const area = document.getElementById('attendance-form-area');
+    area.innerHTML = `
+      <div style="padding:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;
+          margin-bottom:20px;flex-wrap:wrap;gap:10px">
+          <p style="color:var(--text-secondary)">
+            Marking attendance for
+            <strong style="color:var(--gold)">${formatDate(date)}</strong>
+            — ${allStudents.length} student(s)
+          </p>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-outline btn-sm" onclick="markAll('Present')">
+              ✅ All Present
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="markAll('Absent')">
+              ❌ All Absent
+            </button>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Present</th>
+                <th>Absent</th>
+                <th>Late</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${allStudents.map(s => `
+                <tr>
+                  <td>
+                    <div class="student-name-cell">
+                      <div class="student-avatar">
+                        ${getInitials(s.firstName, s.lastName)}
+                      </div>
+                      <div>
+                        <strong style="color:var(--text)">${s.firstName} ${s.lastName}</strong>
+                        <br>
+                        <small style="color:var(--text-secondary)">${s.studentId}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td><small style="color:var(--text-secondary)">${s.course}</small></td>
+                  <td style="text-align:center">
+                    <input type="radio" name="att-${s.id}" value="Present"
+                      ${existingMap[String(s.id)] === 'Present' ? 'checked' : ''}
+                      style="accent-color:var(--success);width:16px;height:16px" />
+                  </td>
+                  <td style="text-align:center">
+                    <input type="radio" name="att-${s.id}" value="Absent"
+                      ${existingMap[String(s.id)] === 'Absent' ? 'checked' : ''}
+                      style="accent-color:var(--danger);width:16px;height:16px" />
+                  </td>
+                  <td style="text-align:center">
+                    <input type="radio" name="att-${s.id}" value="Late"
+                      ${existingMap[String(s.id)] === 'Late' ? 'checked' : ''}
+                      style="accent-color:var(--warning);width:16px;height:16px" />
+                  </td>
+                  <td>
+                    <input type="text" placeholder="Optional..."
+                      style="width:150px;padding:7px 10px;
+                      border:1px solid var(--border-dim);
+                      border-radius:6px;font-size:0.8rem;
+                      background:var(--surface3);color:var(--text);
+                      outline:none"
+                      id="rem-${s.id}" />
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:20px;display:flex;gap:10px">
+          <button class="btn btn-primary" onclick="submitAttendance('${date}')">
+            💾 Save Attendance
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  function markAll(status) {
+    allStudents.forEach(s => {
+      const radio = document.querySelector(
+        `input[name="att-${s.id}"][value="${status}"]`
+      );
+      if (radio) radio.checked = true;
+    });
+  }
+
+  async function submitAttendance(date) {
+    const records = [];
+    let hasSelection = false;
+
+    allStudents.forEach(s => {
+      const selected = document.querySelector(`input[name="att-${s.id}"]:checked`);
+      if (selected) {
+        hasSelection = true;
+        records.push({
+          studentId: String(s.id),
+          date,
+          status: selected.value,
+          remarks: document.getElementById(`rem-${s.id}`)?.value || ''
+        });
+      }
+    });
+
+    if (!hasSelection) {
+      showToast('Please mark at least one student.', 'error');
+      return;
+    }
+
+    let saved = 0;
+    for (const rec of records) {
+      const res = await Attendance.create(rec);
+      if (res && res.ok) saved++;
+    }
+
+    showToast(`${saved} attendance record(s) saved!`, 'success');
+    loadAllRecords();
+  }
+
+  async function deleteRecord(id) {
+    if (!confirm('Are you sure you want to delete this record?')) return;
+    const res = await Attendance.delete(id);
+    if (res && res.ok) {
+      showToast('Record deleted.', 'success');
+      allRecords = allRecords.filter(r => String(r.id) !== String(id));
+      filterRecords();
+      loadAllRecords();
+    } else {
+      showToast('Failed to delete record.', 'error');
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>

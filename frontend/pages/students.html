@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Students – Classroom Roster</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<div class="app-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">🏫</div>
+        <div class="sidebar-logo-text">
+          <h3>Classroom Roster</h3>
+          <span>Premium Edition</span>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main Menu</div>
+      <a class="nav-link" href="dashboard.html"><span class="nav-icon">📊</span> Dashboard</a>
+      <a class="nav-link active" href="students.html"><span class="nav-icon">👨‍🎓</span> Students</a>
+      <a class="nav-link" href="attendance.html"><span class="nav-icon">📋</span> Attendance</a>
+      <a class="nav-link" href="grades.html"><span class="nav-icon">📝</span> Grades</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar">T</div>
+        <div>
+          <div class="user-name" id="user-name">Teacher</div>
+          <div class="user-role" id="user-role">Teacher</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="Auth.logout()">🚪 Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+    <div class="topbar">
+      <button class="menu-btn" id="menu-btn" onclick="toggleSidebar()">☰</button>
+      <div class="topbar-title">
+        <h1>Students</h1>
+        <p>Manage your classroom roster</p>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Student Roster</div>
+            <div class="panel-subtitle" id="student-count">Loading...</div>
+          </div>
+          <div class="panel-actions">
+            <input type="text" class="search-input" id="search"
+              placeholder="🔍 Search students..." oninput="handleSearch(this.value)" />
+            <select class="filter-select" id="filter-course" onchange="applyFilter()">
+              <option value="">All Courses</option>
+            </select>
+            <select class="filter-select" id="filter-status" onchange="applyFilter()">
+              <option value="">All Status</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+            <button class="btn btn-primary" onclick="openAddModal()">✦ Add Student</button>
+          </div>
+        </div>
+        <div id="students-table">
+          <div class="loading"><span class="spinner"></span> Loading students...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="student-modal">
+  <div class="modal" style="max-width:480px; width:90%;">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modal-title">Add New Student</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="modal-alert" class="alert"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>First Name *</label>
+          <input type="text" id="f-firstName" placeholder="Maria" />
+        </div>
+        <div class="form-group">
+          <label>Last Name *</label>
+          <input type="text" id="f-lastName" placeholder="Santos" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email Address *</label>
+        <input type="email" id="f-email" placeholder="student@school.edu" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Course *</label>
+          <select id="f-course">
+            <option value="">Select Course</option>
+            <option>Computer Science</option>
+            <option>Information Technology</option>
+            <option>Information Systems</option>
+            <option>Computer Engineering</option>
+            <option>Electronics Engineering</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Gender *</label>
+          <select id="f-gender">
+            <option value="">Select Gender</option>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Year Level *</label>
+          <select id="f-year">
+            <option value="">Year</option>
+            <option value="1">1st Year</option>
+            <option value="2">2nd Year</option>
+            <option value="3">3rd Year</option>
+            <option value="4">4th Year</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Section *</label>
+          <select id="f-section">
+            <option value="">Section</option>
+            <option>A</option>
+            <option>B</option>
+            <option>C</option>
+            <option>D</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="f-status">
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Contact Number</label>
+        <input type="text" id="f-contactNumber" placeholder="09171234567" />
+      </div>
+      <div class="form-group">
+        <label>Address</label>
+        <input type="text" id="f-address" placeholder="City, Province" />
+      </div>
+      <div class="form-group">
+        <label>Enrollment Date</label>
+        <input type="date" id="f-enrollmentDate" />
+      </div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Midterm Grade</label>
+          <input type="number" id="f-midterm" min="0" max="100" placeholder="0-100" />
+        </div>
+        <div class="form-group">
+          <label>Finals Grade</label>
+          <input type="number" id="f-finals" min="0" max="100" placeholder="0-100" />
+        </div>
+        <div class="form-group">
+          <label>Average</label>
+          <input type="number" id="f-average" min="0" max="100" placeholder="Auto"
+            readonly style="background:var(--bg3);color:var(--gold)" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="save-btn" onclick="saveStudent()">✦ Save Student</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Modal -->
+<div class="modal-overlay" id="view-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">Student Profile</h3>
+      <button class="modal-close" onclick="closeViewModal()">✕</button>
+    </div>
+    <div class="modal-body" id="view-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeViewModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Delete -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <h3 class="modal-title">Confirm Delete</h3>
+      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text-secondary);line-height:1.6;text-align:center;">
+        Are you sure you want to delete
+        <strong style="color:var(--text)" id="delete-name"></strong>?
+        This action cannot be undone.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-danger" id="confirm-delete-btn">🗑 Delete Student</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/utils.js"></script>
+<script>
+  requireAuth();
+  loadUserInfo();
+
+  let allStudents = [];
+  let editingId = null;
+
+  ['f-midterm', 'f-finals'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+      const m = parseFloat(document.getElementById('f-midterm').value) || 0;
+      const f = parseFloat(document.getElementById('f-finals').value) || 0;
+      document.getElementById('f-average').value =
+        m > 0 || f > 0 ? ((m + f) / 2).toFixed(2) : '';
+    });
+  });
+
+  async function loadStudents() {
+    const res = await Students.getAll();
+    if (res && res.ok) {
+      allStudents = res.data.data;
+      populateCourseFilter();
+      renderTable(allStudents);
+    }
+  }
+
+  function populateCourseFilter() {
+    const courses = [...new Set(allStudents.map(s => s.course))];
+    const sel = document.getElementById('filter-course');
+    sel.innerHTML = '<option value="">All Courses</option>' +
+      courses.map(c => `<option value="${c}">${c}</option>`).join('');
+  }
+
+  function renderTable(students) {
+    const container = document.getElementById('students-table');
+    document.getElementById('student-count').textContent = `${students.length} student(s) enrolled`;
+
+    if (students.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <h3>No students found</h3>
+          <p>Try adjusting your search or add a new student.</p>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Student ID</th>
+            <th>Course</th>
+            <th>Year / Sec</th>
+            <th>Status</th>
+            <th>Avg Grade</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${students.map(s => `
+            <tr>
+              <td>
+                <div class="student-name-cell">
+                  <div class="student-avatar">
+                    ${getInitials(s.firstName, s.lastName)}
+                  </div>
+                  <div>
+                    <strong style="color:var(--text)">${s.firstName} ${s.lastName}</strong>
+                    <br>
+                    <small style="color:var(--text-secondary)">${s.email}</small>
+                  </div>
+                </div>
+              </td>
+              <td><code>${s.studentId}</code></td>
+              <td style="color:var(--text-secondary)">${s.course}</td>
+              <td style="color:var(--text-secondary)">Year ${s.year} – ${s.section}</td>
+              <td>
+                <span class="badge ${s.status === 'Active' ? 'badge-success' : 'badge-gray'}">
+                  ${s.status}
+                </span>
+              </td>
+              <td>
+                <span class="grade ${gradeClass(s.grades?.average)}">
+                  ${s.grades?.average || '—'}
+                </span>
+              </td>
+              <td>
+                <div class="table-actions">
+                  <button class="btn btn-outline btn-sm"
+                    onclick="viewStudent('${s.id}')">👁 View</button>
+                  <button class="btn btn-primary btn-sm"
+                    onclick="openEditModal('${s.id}')">✏️ Edit</button>
+                  <button class="btn btn-danger btn-sm"
+                    onclick="confirmDelete('${s.id}', '${s.firstName} ${s.lastName}')">🗑</button>
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  let searchTimer;
+  function handleSearch(val) {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(async () => {
+      if (val.trim()) {
+        const res = await Students.search(val.trim());
+        if (res && res.ok) renderTable(res.data.data);
+      } else {
+        applyFilter();
+      }
+    }, 300);
+  }
+
+  function applyFilter() {
+    const course = document.getElementById('filter-course').value;
+    const status = document.getElementById('filter-status').value;
+    let filtered = [...allStudents];
+    if (course) filtered = filtered.filter(s => s.course === course);
+    if (status) filtered = filtered.filter(s => s.status === status);
+    renderTable(filtered);
+  }
+
+  function openAddModal() {
+    editingId = null;
+    document.getElementById('modal-title').textContent = 'Add New Student';
+    document.getElementById('save-btn').textContent = '✦ Save Student';
+    clearForm();
+    document.getElementById('f-enrollmentDate').value =
+      new Date().toISOString().split('T')[0];
+    document.getElementById('student-modal').classList.add('open');
+  }
+
+  function openEditModal(id) {
+    const student = allStudents.find(s => s.id == id);
+    if (!student) return;
+    editingId = id;
+    document.getElementById('modal-title').textContent = 'Edit Student';
+    document.getElementById('save-btn').textContent = '✦ Update Student';
+    fillForm(student);
+    document.getElementById('student-modal').classList.add('open');
+  }
+
+  function clearForm() {
+    ['firstName','lastName','email','course','gender','year','section',
+     'status','contactNumber','address','enrollmentDate','midterm','finals','average']
+      .forEach(f => {
+        const el = document.getElementById('f-' + f);
+        if (el) el.value = f === 'status' ? 'Active' : '';
+      });
+  }
+
+  function fillForm(s) {
+    document.getElementById('f-firstName').value = s.firstName || '';
+    document.getElementById('f-lastName').value = s.lastName || '';
+    document.getElementById('f-email').value = s.email || '';
+    document.getElementById('f-course').value = s.course || '';
+    document.getElementById('f-gender').value = s.gender || '';
+    document.getElementById('f-year').value = s.year || '';
+    document.getElementById('f-section').value = s.section || '';
+    document.getElementById('f-status').value = s.status || 'Active';
+    document.getElementById('f-contactNumber').value = s.contactNumber || '';
+    document.getElementById('f-address').value = s.address || '';
+    document.getElementById('f-enrollmentDate').value = s.enrollmentDate || '';
+    document.getElementById('f-midterm').value = s.grades?.midterm || '';
+    document.getElementById('f-finals').value = s.grades?.finals || '';
+    document.getElementById('f-average').value = s.grades?.average || '';
+  }
+
+  async function saveStudent() {
+    const data = {
+      firstName: document.getElementById('f-firstName').value.trim(),
+      lastName: document.getElementById('f-lastName').value.trim(),
+      email: document.getElementById('f-email').value.trim(),
+      course: document.getElementById('f-course').value,
+      gender: document.getElementById('f-gender').value,
+      year: document.getElementById('f-year').value,
+      section: document.getElementById('f-section').value,
+      status: document.getElementById('f-status').value,
+      contactNumber: document.getElementById('f-contactNumber').value.trim(),
+      address: document.getElementById('f-address').value.trim(),
+      enrollmentDate: document.getElementById('f-enrollmentDate').value,
+      grades: {
+        midterm: parseFloat(document.getElementById('f-midterm').value) || 0,
+        finals: parseFloat(document.getElementById('f-finals').value) || 0,
+        average: parseFloat(document.getElementById('f-average').value) || 0
+      }
+    };
+
+    if (!data.firstName || !data.lastName || !data.email ||
+        !data.course || !data.gender || !data.year || !data.section) {
+      showAlert('modal-alert', 'Please fill in all required fields.');
+      return;
+    }
+
+    const btn = document.getElementById('save-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Saving...';
+
+    const res = editingId
+      ? await Students.update(editingId, data)
+      : await Students.create(data);
+
+    btn.disabled = false;
+    btn.innerHTML = editingId ? '✦ Update Student' : '✦ Save Student';
+
+    if (res && res.ok) {
+      showToast(editingId ? 'Student updated!' : 'Student added!', 'success');
+      closeModal();
+      loadStudents();
+    } else {
+      showAlert('modal-alert', res?.data?.message || 'Failed to save student.');
+    }
+  }
+
+  function viewStudent(id) {
+    const s = allStudents.find(s => s.id == id);
+    if (!s) return;
+    document.getElementById('view-body').innerHTML = `
+      <div style="display:flex;align-items:center;gap:18px;margin-bottom:24px;
+        padding:20px;background:var(--bg3);border-radius:var(--radius);
+        border:1px solid var(--border-dim)">
+        <div class="student-avatar"
+          style="width:64px;height:64px;font-size:1.5rem">
+          ${getInitials(s.firstName, s.lastName)}
+        </div>
+        <div>
+          <h3 style="font-size:1.4rem;margin-bottom:4px">
+            ${s.firstName} ${s.lastName}
+          </h3>
+          <code>${s.studentId}</code>
+          <span class="badge ${s.status === 'Active' ? 'badge-success' : 'badge-gray'}"
+            style="margin-left:8px">${s.status}</span>
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:14px">
+        <div style="padding:14px;background:var(--bg3);border-radius:var(--radius-sm);
+          border:1px solid var(--border-dim)">
+          <div style="font-size:0.7rem;color:var(--gold);text-transform:uppercase;
+            letter-spacing:1px;margin-bottom:4px">Email</div>
+          <div style="color:var(--text)">${s.email}</div>
+        </div>
+        <div style="padding:14px;background:var(--bg3);border-radius:var(--radius-sm);
+          border:1px solid var(--border-dim)">
+          <div style="font-size:0.7rem;color:var(--gold);text-transform:uppercase;
+            letter-spacing:1px;margin-bottom:4px">Contact</div>
+          <div style="color:var(--text)">${s.contactNumber || '—'}</div>
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:14px">
+        <div style="padding:14px;background:var(--bg3);border-radius:var(--radius-sm);
+          border:1px solid var(--border-dim)">
+          <div style="font-size:0.7rem;color:var(--gold);text-transform:uppercase;
+            letter-spacing:1px;margin-bottom:4px">Course</div>
+          <div style="color:var(--text)">${s.course}</div>
+        </div>
+        <div style="padding:14px;background:var(--bg3);border-radius:var(--radius-sm);
+          border:1px solid var(--border-dim)">
+          <div style="font-size:0.7rem;color:var(--gold);text-transform:uppercase;
+            letter-spacing:1px;margin-bottom:4px">Year & Section</div>
+          <div style="color:var(--text)">Year ${s.year} – Section ${s.section}</div>
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:14px">
+        <div style="padding:14px;background:var(--bg3);border-radius:var(--radius-sm);
+          border:1px solid var(--border-dim)">
+          <div style="font-size:0.7rem;color:var(--gold);text-transform:uppercase;
+            letter-spacing:1px;margin-bottom:4px">Gender</div>
+          <div style="color:var(--text)">${s.gender}</div>
+        </div>
+        <div style="padding:14px;background:var(--bg3);border-radius:var(--radius-sm);
+          border:1px solid var(--border-dim)">
+          <div style="font-size:0.7rem;color:var(--gold);text-transform:uppercase;
+            letter-spacing:1px;margin-bottom:4px">Enrolled</div>
+          <div style="color:var(--text)">${formatDate(s.enrollmentDate)}</div>
+        </div>
+      </div>
+      <div style="padding:14px;background:var(--bg3);border-radius:var(--radius-sm);
+        border:1px solid var(--border-dim);margin-bottom:20px">
+        <div style="font-size:0.7rem;color:var(--gold);text-transform:uppercase;
+          letter-spacing:1px;margin-bottom:4px">Address</div>
+        <div style="color:var(--text)">${s.address || '—'}</div>
+      </div>
+      <div style="border-top:1px solid var(--border-dim);padding-top:20px">
+        <h4 style="margin-bottom:14px;color:var(--gold);font-size:0.8rem;
+          text-transform:uppercase;letter-spacing:1px">✦ Academic Performance</h4>
+        <div class="form-row-3">
+          <div style="text-align:center;padding:16px;background:var(--bg3);
+            border-radius:var(--radius-sm);border:1px solid var(--border-dim)">
+            <div style="font-size:1.8rem;font-weight:700;font-family:'Playfair Display',serif;
+              color:var(--text)">${s.grades?.midterm || '—'}</div>
+            <div style="font-size:0.72rem;color:var(--gold);text-transform:uppercase;
+              letter-spacing:1px;margin-top:4px">Midterm</div>
+          </div>
+          <div style="text-align:center;padding:16px;background:var(--bg3);
+            border-radius:var(--radius-sm);border:1px solid var(--border-dim)">
+            <div style="font-size:1.8rem;font-weight:700;font-family:'Playfair Display',serif;
+              color:var(--text)">${s.grades?.finals || '—'}</div>
+            <div style="font-size:0.72rem;color:var(--gold);text-transform:uppercase;
+              letter-spacing:1px;margin-top:4px">Finals</div>
+          </div>
+          <div style="text-align:center;padding:16px;background:var(--gold-dim);
+            border-radius:var(--radius-sm);border:1px solid var(--border)">
+            <div class="grade ${gradeClass(s.grades?.average)}"
+              style="font-size:1.8rem">
+              ${s.grades?.average || '—'}
+            </div>
+            <div style="font-size:0.72rem;color:var(--gold);text-transform:uppercase;
+              letter-spacing:1px;margin-top:4px">
+              ${gradeLabel(s.grades?.average)}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.getElementById('view-modal').classList.add('open');
+  }
+
+  function confirmDelete(id, name) {
+    document.getElementById('delete-name').textContent = name;
+    document.getElementById('confirm-delete-btn').onclick = async () => {
+      const res = await Students.delete(id);
+      if (res && res.ok) {
+        showToast('Student deleted.', 'success');
+        closeDeleteModal();
+        loadStudents();
+      } else {
+        showToast('Failed to delete student.', 'error');
+      }
+    };
+    document.getElementById('delete-modal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('student-modal').classList.remove('open');
+  }
+  function closeViewModal() {
+    document.getElementById('view-modal').classList.remove('open');
+  }
+  function closeDeleteModal() {
+    document.getElementById('delete-modal').classList.remove('open');
+  }
+
+  loadStudents();
+</script>
+</body>
+</html>
